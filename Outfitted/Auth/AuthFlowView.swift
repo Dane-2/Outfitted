@@ -9,10 +9,11 @@ import SwiftUI
 
 struct AuthFlowView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var vm = AuthViewModel()
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 Spacer()
                 
                 // App branding
@@ -32,52 +33,67 @@ struct AuthFlowView: View {
                 
                 Spacer()
                 
-                // Auth buttons
-                VStack(spacing: 16) {
-                    Button(action: {
-                        // Placeholder for sign in
-                    }) {
-                        Text("Sign In")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundStyle(.white)
-                            .cornerRadius(12)
+                // Auth form
+                VStack(spacing: 20) {
+                    // Mode selector
+                    Picker("Auth Mode", selection: $vm.mode) {
+                        Text("Sign In").tag(AuthViewModel.AuthMode.signIn)
+                        Text("Create Account").tag(AuthViewModel.AuthMode.signUp)
                     }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 32)
                     
+                    // Email field
+                    TextField("Email", text: $vm.email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 32)
+                    
+                    // Password field
+                    SecureField("Password", text: $vm.password)
+                        .textContentType(vm.mode == .signUp ? .newPassword : .password)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 32)
+                    
+                    // Submit button
                     Button(action: {
-                        // Placeholder for create account
+                        Task {
+                            await vm.submit(appState: appState)
+                        }
                     }) {
-                        Text("Create Account")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .foregroundStyle(.blue)
-                            .cornerRadius(12)
+                        if vm.isLoading {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(.white)
+                        } else {
+                            Text(vm.mode == .signIn ? "Sign In" : "Create Account")
+                                .font(.headline)
+                        }
                     }
-                    
-                    // Mock sign in for testing
-                    Divider()
-                        .padding(.vertical)
-                    
-                    Button(action: {
-                        appState.signIn(userId: "debug-user", email: "debug@outfitted.app")
-                    }) {
-                        Text("Mock Sign In (Debug)")
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .foregroundStyle(.green)
-                            .cornerRadius(12)
-                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundStyle(.white)
+                    .cornerRadius(12)
+                    .disabled(vm.isLoading)
+                    .padding(.horizontal, 32)
                 }
-                .padding(.horizontal, 32)
                 .padding(.bottom, 48)
+                
+                Spacer()
             }
             .navigationTitle("")
+            .alert("Error", isPresented: .constant(vm.errorMessage != nil)) {
+                Button("OK") {
+                    vm.errorMessage = nil
+                }
+            } message: {
+                if let errorMessage = vm.errorMessage {
+                    Text(errorMessage)
+                }
+            }
         }
     }
 }

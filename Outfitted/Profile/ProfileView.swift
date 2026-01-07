@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var appState: AppState
+    @State private var signOutError: String?
     
     var body: some View {
         NavigationStack {
@@ -37,7 +38,13 @@ struct ProfileView: View {
                 
                 Section {
                     Button(role: .destructive, action: {
-                        appState.signOut()
+                        Task {
+                            do {
+                                try await appState.signOut()
+                            } catch {
+                                signOutError = error.localizedDescription
+                            }
+                        }
                     }) {
                         HStack {
                             Spacer()
@@ -48,6 +55,15 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .alert("Sign Out Error", isPresented: .constant(signOutError != nil)) {
+                Button("OK") {
+                    signOutError = nil
+                }
+            } message: {
+                if let signOutError = signOutError {
+                    Text(signOutError)
+                }
+            }
         }
     }
 }
