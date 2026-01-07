@@ -10,40 +10,21 @@ import SwiftUI
 
 /// Main application state managing authentication and user session
 @MainActor
-final class AppState: ObservableObject {
+class AppState: ObservableObject {
     @Published var session: SessionState = .loading
     
-    private let authService: AuthServicing
-    
-    init(authService: AuthServicing = SupabaseAuthService()) {
-        self.authService = authService
-        self.session = .loading
-        
-        Task {
-            await bootstrap()
+    init() {
+        // Simulate initial check - in Week 1 we just set to signedOut
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.session = .signedOut
         }
     }
     
-    func bootstrap() async {
-        if let userSession = await authService.currentUserSession() {
-            session = .signedIn(userSession)
-        } else {
-            session = .signedOut
-        }
+    func signIn(userId: String, email: String?) {
+        session = .signedIn(UserSession(userId: userId, email: email))
     }
     
-    func signUp(email: String, password: String) async throws {
-        let userSession = try await authService.signUp(email: email, password: password)
-        session = .signedIn(userSession)
-    }
-    
-    func signIn(email: String, password: String) async throws {
-        let userSession = try await authService.signIn(email: email, password: password)
-        session = .signedIn(userSession)
-    }
-    
-    func signOut() async throws {
-        try await authService.signOut()
+    func signOut() {
         session = .signedOut
     }
 }

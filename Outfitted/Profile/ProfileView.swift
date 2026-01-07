@@ -38,13 +38,7 @@ struct ProfileView: View {
                 
                 Section {
                     Button(role: .destructive, action: {
-                        Task {
-                            do {
-                                try await appState.signOut()
-                            } catch {
-                                signOutError = error.localizedDescription
-                            }
-                        }
+                        appState.signOut()
                     }) {
                         HStack {
                             Spacer()
@@ -55,15 +49,6 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
-            .alert("Sign Out Error", isPresented: .constant(signOutError != nil)) {
-                Button("OK") {
-                    signOutError = nil
-                }
-            } message: {
-                if let signOutError = signOutError {
-                    Text(signOutError)
-                }
-            }
         }
     }
 }
