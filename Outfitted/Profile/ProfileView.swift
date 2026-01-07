@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var appState: AppState
+    @State private var signOutError: String?
     
     var body: some View {
         NavigationStack {

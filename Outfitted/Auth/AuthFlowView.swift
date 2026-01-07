@@ -9,10 +9,11 @@ import SwiftUI
 
 struct AuthFlowView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var vm = AuthViewModel()
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 Spacer()
                 
                 // App branding
